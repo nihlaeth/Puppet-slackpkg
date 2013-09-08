@@ -103,7 +103,7 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 				if line.match(/^[a-zA-Z0-9]* #{@resource[:name]} ([0-9\.]*) .*/)
 					hash = {
 							:ensure => :present,
-							:desired => $1
+							:desired => $1,
 							:status => 'installed',
 							:name => @resource[:name],
 							:error => 'ok',

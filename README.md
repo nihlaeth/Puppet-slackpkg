@@ -7,7 +7,6 @@ About
 ===================
 
 This provides very basic support for slackpkg / slackware to puppet.
-At this time the ensure=> absent option does not function yet.
 
 Please excuse my Ruby, I'm a python programmer.
 
@@ -31,8 +30,7 @@ for you.
 To do
 ===================
 
-* Make the query function actually return a list of installed packages (this will fix ensure=>absent)
-* Have the remove function check if the package is at 'latest'.
+* Have the remove function get package name from pkglist.
 * Add -batch and -default-answer=y arguments so the slackpkg configuration does not need modification.
 
 
