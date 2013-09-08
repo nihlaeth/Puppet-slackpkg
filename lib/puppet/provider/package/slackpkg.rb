@@ -69,12 +69,14 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			Puppet.debug("package should be removed, status="+$status)
 			#remove package if need be
 			if $status!="uninstalled"
-				execpipe("/usr/sbin/slackpkg remove " + $name) do |process|
+				$data=self.query
+				$rname="#{$data[:name]}-#{$data[:desired]}"
+				execpipe("/usr/sbin/slackpkg remove " + $rname) do |process|
 					process.each{ |line|
 						Puppet.debug(line)
 					}
 				end
-				Puppet.debug("${package} removed")
+				Puppet.debug("#{$rname} removed")
 			end
 		end
 	

@@ -30,7 +30,6 @@ for you.
 To do
 ===================
 
-* Have the remove function get package name from pkglist.
 * Add -batch and -default-answer=y arguments so the slackpkg configuration does not need modification.
 
 
