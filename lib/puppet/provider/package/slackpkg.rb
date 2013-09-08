@@ -50,7 +50,7 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			#install or upgrade package if needed
 			Puppet.debug("package should be installed, status="+$status)
 			if $status=="upgrade" 
-				execpipe("/usr/sbin/slackpkg upgrade " + $package) do |process|
+				execpipe("/usr/sbin/slackpkg -batch=on -default_answer=y upgrade " + $package) do |process|
 					process.each{ |line|
 						Puppet.debug(line)
 					}
@@ -58,7 +58,7 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 				Puppet.debug("${package} upgraded")
 			end
 			if $status=="uninstalled" 
-				execpipe("/usr/sbin/slackpkg install " + $name) do |process|
+				execpipe("/usr/sbin/slackpkg -batch=on -default_answer=y install " + $name) do |process|
 					process.each{ |line|
 						Puppet.debug(line)
 					}
@@ -71,7 +71,7 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			if $status!="uninstalled"
 				$data=self.query
 				$rname="#{$data[:name]}-#{$data[:desired]}"
-				execpipe("/usr/sbin/slackpkg remove " + $rname) do |process|
+				execpipe("/usr/sbin/slackpkg -batch=on -default_answer=y remove " + $rname) do |process|
 					process.each{ |line|
 						Puppet.debug(line)
 					}
