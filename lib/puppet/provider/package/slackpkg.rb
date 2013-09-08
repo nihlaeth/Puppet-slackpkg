@@ -97,7 +97,23 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 				:name => @resource[:name],
 				:error => 'ok',
 		}
-		return hash #self.install already queries, it's not neat but I'm lazy.
+		execpipe("cat /var/lib/slackpkg/pkglist") do |process|
+			process.each{ |line|
+				Puppet.debug('Looking for package in pkglist')
+				if line.match(/^[a-zA-Z0-9]* #{@resource[:name]} ([0-9\.]*) .*/)
+					hash = {
+							:ensure => :present,
+							:desired => $1
+							:status => 'installed',
+							:name => @resource[:name],
+							:error => 'ok',
+					}
+					Puppet.debug('Package found!')
+				end
+			}
+		end
+
+		return hash
 	end
 
 
