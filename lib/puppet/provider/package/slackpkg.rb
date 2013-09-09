@@ -27,7 +27,8 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 		execpipe("/usr/sbin/slackpkg info " + $package) do |process|
 			$name = nil
 			process.each { |line|
-				Puppet.debug("Info-line="+line)
+				line=self.sanitize(line)
+				Puppet.debug("Info-line="+line.inspect)
 				if line.match(/^PACKAGE NAME\:[ ]*([a-zA-Z0-9\-\_\.]*)\.t[xg]z$/) 
 					Puppet.debug("found a match! name = "+$1)
 					$name = $1
@@ -38,7 +39,8 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 		execpipe("/usr/sbin/slackpkg search " + $package) do |process|
 			$status = nil
 			process.each { |line|
-				Puppet.debug("Search-line="+line)
+				line=self.sanitize(line)
+				Puppet.debug("Search-line="+line.inspect)
 				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{$package}\-.*/) 
 					Puppet.debug("Found a match! status="+$1)
 					$status = $1
@@ -46,7 +48,7 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			}
 		end
 		
-		if $ens=='present'
+		if "#{$ens}"=="present"
 			#install or upgrade package if needed
 			Puppet.debug("package should be installed, status="+$status)
 			if $status=="upgrade" 
@@ -90,6 +92,15 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 	def latest
 		self.install
 	end
+	
+	def sanitize (data)
+		result= data.gsub(/\e\[\?[0-9]*[lh]/, '')
+		if result==nil
+			return data
+		else
+			return result
+		end
+	end
 
 	def query
 		Puppet.debug("query")
@@ -99,18 +110,40 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 				:name => @resource[:name],
 				:error => 'ok',
 		}
+		
+		execpipe("/usr/sbin/slackpkg search #{@resource[:name]}") do |process|
+			Puppet.debug("testing for status of package: #{@resource[:name]}")
+			process.each{ |line|
+				line=self.sanitize(line)
+				Puppet.debug(line.inspect)
+				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{@resource[:name]}\-.*/)
+					Puppet.debug("Found! status=#{$1}")
+					$status=$1
+					if $status=='installed' or $status=='upgrade'
+						$hstatus='installed'
+						$hensure=:present
+					end
+					if $status=='uninstalled'
+						$hstatus='missing'
+						$hensure=:absent
+					end
+				end
+			}
+
+		end
 		execpipe("cat /var/lib/slackpkg/pkglist") do |process|
 			process.each{ |line|
-				Puppet.debug('Looking for package in pkglist')
+				line=self.sanitize(line)
+				#Puppet.debug('Looking for package in pkglist')
 				if line.match(/^[a-zA-Z0-9]* #{@resource[:name]} ([0-9\.]*) .*/)
 					hash = {
-							:ensure => :present,
+							:ensure => $hensure,
 							:desired => $1,
-							:status => 'installed',
+							:status => $hstatus,
 							:name => @resource[:name],
 							:error => 'ok',
 					}
-					Puppet.debug('Package found!')
+					Puppet.debug("Package #{$hstatus}")
 				end
 			}
 		end
