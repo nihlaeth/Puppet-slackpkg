@@ -41,7 +41,8 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			process.each { |line|
 				line=self.sanitize(line)
 				Puppet.debug("Search-line="+line.inspect)
-				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{$package}\-.*/) 
+				name=Regexp.escape($package)
+				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{name}\-.*/) 
 					Puppet.debug("Found a match! status="+$1)
 					$status = $1
 				end
@@ -116,7 +117,8 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			process.each{ |line|
 				line=self.sanitize(line)
 				Puppet.debug(line.inspect)
-				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{@resource[:name]}\-.*/)
+				name=Regexp.escape(@resource[:name])
+				if line.match(/^\[[ ]*(installed|uninstalled|upgrade)[ ]*\] \- #{name}\-.*/)
 					Puppet.debug("Found! status=#{$1}")
 					$status=$1
 					if $status=='installed' or $status=='upgrade'
@@ -135,7 +137,8 @@ Puppet::Type.type(:package).provide :slackpkg, :parent => Puppet::Provider::Pack
 			process.each{ |line|
 				line=self.sanitize(line)
 				#Puppet.debug('Looking for package in pkglist')
-				if line.match(/^[a-zA-Z0-9]* #{@resource[:name]} ([0-9\.]*) .*/)
+				name=Regexp.escape(@resource[:name])
+				if line.match(/^[a-zA-Z0-9]* #{name} ([0-9\.]*) .*/)
 					hash = {
 							:ensure => $hensure,
 							:desired => $1,
